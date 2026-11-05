@@ -126,6 +126,30 @@ public class MainActivity extends Activity {
                     );
                 });
             }
+                        @JavascriptInterface
+            public void printReport(String report) {
+                runOnUiThread(() -> {
+                    WebView printView = new WebView(MainActivity.this);
+
+                    printView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            PrintManager manager =
+                                (PrintManager) getSystemService(PRINT_SERVICE);
+
+                            manager.print(
+                                "Laporan-21Vapor",
+                                view.createPrintDocumentAdapter("Laporan-21Vapor"),
+                                null
+                            );
+                        }
+                    });
+
+                    printView.loadDataWithBaseURL(
+                        null, report, "text/html", "UTF-8", null
+                    );
+                });
+            }
         }, "Android");
 
         webView.loadUrl("file:///android_asset/index.html");
