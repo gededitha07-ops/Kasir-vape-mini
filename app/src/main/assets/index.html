@@ -125,18 +125,68 @@ function show(id){
  document.getElementById(id).classList.remove('hidden');
  tampilkan();
 }
+  
+let idProdukEdit = null;
+
+function editProduk(id){
+ if(!pemilik)return alert('Hanya pemilik yang dapat mengelola produk');
+
+ let p=produk.find(x=>x.id==id);
+ if(!p)return alert('Produk tidak ditemukan');
+
+ idProdukEdit=p.id;
+
+ document.getElementById('nama').value=p.nama;
+ document.getElementById('modal').value=p.modal;
+ document.getElementById('harga').value=p.harga;
+ document.getElementById('stok').value=p.stok;
+
+ alert('Silakan ubah data produk, lalu tekan Simpan Produk');
+}
+
+
 function simpanProduk(){
  if(!pemilik)return alert('Hanya pemilik yang dapat mengelola produk');
+
  let n=document.getElementById('nama').value.trim();
  let m=Number(document.getElementById('modal').value);
  let h=Number(document.getElementById('harga').value);
  let s=Number(document.getElementById('stok').value);
- if(!n||m<0||h<=0||s<0||!Number.isInteger(s))return alert('Periksa data produk');
- produk.push({id:Date.now(),nama:n,modal:m,harga:h,stok:s});
- simpanData();tampilkan();
- ['nama','modal','harga','stok'].forEach(x=>document.getElementById(x).value='');
- alert('Produk berhasil disimpan');
+
+ if(!n||m<0||h<=0||s<0||!Number.isInteger(s))
+ return alert('Periksa data produk');
+
+ if(idProdukEdit!==null){
+   let p=produk.find(x=>x.id==idProdukEdit);
+   if(!p)return alert('Produk tidak ditemukan');
+
+   p.nama=n;
+   p.modal=m;
+   p.harga=h;
+   p.stok=s;
+
+   idProdukEdit=null;
+   alert('Produk berhasil diperbarui');
+ }else{
+   produk.push({
+     id:Date.now(),
+     nama:n,
+     modal:m,
+     harga:h,
+     stok:s
+   });
+
+   alert('Produk berhasil disimpan');
+ }
+
+ simpanData();
+ tampilkan();
+
+ ['nama','modal','harga','stok'].forEach(x=>
+ document.getElementById(x).value=''
+ );
 }
+
 function hapusProduk(id){
  if(!pemilik)return;
  if(confirm('Hapus produk ini?')){
@@ -191,15 +241,29 @@ setTimeout(function() {
 keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
+
 function tampilkan(){
  document.getElementById('pilihProduk').innerHTML=produk.map(p=>`<option value="${p.id}">${p.nama} — ${rp(p.harga)} (Stok ${p.stok})</option>`).join('');
- document.getElementById('daftarProduk').innerHTML=produk.map(p=>`<div class="item"><b>${p.nama}</b><br>Modal ${rp(p.modal)} | Jual ${rp(p.harga)} | Margin ${rp(p.harga-p.modal)} | Stok ${p.stok}${pemilik?`<button class="red" onclick="hapusProduk(${p.id})">Hapus</button>`:''}</div>`).join('');
+
+ document.getElementById('daftarProduk').innerHTML=produk.map(p=>`
+ <div class="item">
+ <b>${p.nama}</b><br>
+ Modal ${rp(p.modal)} | Jual ${rp(p.harga)} | Margin ${rp(p.harga-p.modal)} | Stok ${p.stok}
+ ${pemilik?`
+ <button onclick="editProduk(${p.id})">Edit</button>
+ <button class="red" onclick="hapusProduk(${p.id})">Hapus</button>
+ `:''}
+ </div>`).join('');
+
  document.getElementById('daftarTransaksi').innerHTML=transaksi.slice().reverse().map(t=>`<div class="item">${new Date(t.tanggal).toLocaleString('id-ID')}<br>Total ${rp(t.total)} | Laba kotor ${rp(t.laba)}<br>${t.bayar}</div>`).join('');
+
  let omzet=transaksi.reduce((a,t)=>a+t.total,0);
  let laba=transaksi.reduce((a,t)=>a+t.laba,0);
  document.getElementById('ringkasan').innerHTML='Jumlah transaksi: '+transaksi.length+'<br>Omzet: '+rp(omzet)+'<br>Laba kotor: '+rp(laba);
+
  tampilkanKeranjang();
 }
+
 function backup() {
     let data = JSON.stringify({
         produk: produk,
