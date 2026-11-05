@@ -226,6 +226,51 @@ function restore(){
  };
  r.readAsText(f);
 }
+  function cetakLaporanBulanan() {
+  let bulan = document.getElementById("bulanLaporan").value;
+
+  if (!bulan) {
+    alert("Pilih bulan terlebih dahulu");
+    return;
+  }
+
+  let daftar = transaksi.filter(t =>
+    t.tanggal && t.tanggal.startsWith(bulan)
+  );
+
+  let omzet = daftar.reduce((a, t) => a + Number(t.total || 0), 0);
+  let laba = daftar.reduce((a, t) => a + Number(t.laba || 0), 0);
+  let modal = omzet - laba;
+
+  let isi = `
+    <html>
+    <head><title>Laporan 21Vapor</title></head>
+    <body>
+      <h2>Laporan Penjualan 21Vapor</h2>
+      <h3>Bulan: ${bulan}</h3>
+      <p>Jumlah transaksi: ${daftar.length}</p>
+      <p>Total omzet: ${rp(omzet)}</p>
+      <p>Total modal: ${rp(modal)}</p>
+      <p>Total laba kotor: ${rp(laba)}</p>
+      <hr>
+      <h3>Rincian Transaksi</h3>
+      ${daftar.map(t => `
+        <p>${new Date(t.tanggal).toLocaleString('id-ID')}
+        — ${rp(t.total)} — Laba ${rp(t.laba)}</p>
+      `).join('')}
+    </body>
+    </html>
+  `;
+
+  let jendela = window.open("", "_blank");
+  if (!jendela) {
+    alert("Tidak dapat membuka halaman cetak");
+    return;
+  }
+  jendela.document.write(isi);
+  jendela.document.close();
+  jendela.print();
+}
 </script>
 </body>
 </html>
