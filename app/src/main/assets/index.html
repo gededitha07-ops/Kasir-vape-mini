@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kasir Vape Mini</title>
+<style>
+body{font-family:Arial;background:#f1f3f5;margin:0;color:#222}
+header{background:#20252b;color:white;padding:16px;text-align:center}
+main{padding:14px;max-width:700px;margin:auto}
+.card{background:white;padding:14px;margin:12px 0;border-radius:10px}
+input,select,button{box-sizing:border-box;padding:11px;margin:5px 0;width:100%;border:1px solid #ccc;border-radius:6px;font-size:15px}
+button{background:#20252b;color:white;border:0;font-weight:bold}
+button.green{background:#16834a}
+button.red{background:#bd3030}
+nav{display:flex;gap:5px;flex-wrap:wrap}
+nav button{width:auto;flex:1;font-size:12px}
+small{color:#666}
+.hidden{display:none}
+.item{border-bottom:1px solid #ddd;padding:9px 0}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.row button{width:auto}
+</style>
+</head>
+<body>
+<header><h2>♨ KASIR VAPE MINI</h2><small>21 Vape Store • Offline</small></header>
+<main>
+<section id="login" class="card">
+<h3>Masuk Aplikasi</h3>
+<input id="pin" type="password" placeholder="Masukkan PIN">
+<button onclick="login()">Masuk</button>
+<small>PIN Pemilik: 1234 | PIN Kasir: 0000</small>
+</section>
+
+<section id="app" class="hidden">
+<nav>
+<button onclick="show('jual')">Kasir</button>
+<button onclick="show('produk')">Produk</button>
+<button onclick="show('riwayat')">Riwayat</button>
+<button onclick="show('laporan')">Laporan</button>
+<button onclick="show('backup')">Backup</button>
+<button onclick="logout()">Keluar</button>
+</nav>
+
+<div id="jual" class="card">
+<h3>Transaksi Penjualan</h3>
+<select id="pilihProduk"></select>
+<input id="jumlah" type="number" min="1" value="1" placeholder="Jumlah">
+<button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
+<div id="keranjang"></div>
+<h3 id="total">Total: Rp0</h3>
+<select id="bayar">
+<option>Tunai</option><option>QRIS</option>
+<option>Transfer Bank</option><option>E-Wallet</option>
+</select>
+<label><input id="umur" type="checkbox" style="width:auto"> Pembeli telah memenuhi batas usia yang berlaku</label>
+<button class="green" onclick="simpanTransaksi()">Simpan Transaksi</button>
+</div>
+
+<div id="produk" class="card hidden">
+<h3>Tambah Produk</h3>
+<input id="nama" placeholder="Nama produk">
+<input id="modal" type="number" placeholder="Harga modal (Rp)">
+<input id="harga" type="number" placeholder="Harga jual (Rp)">
+<input id="stok" type="number" placeholder="Stok awal">
+<button onclick="simpanProduk()">Simpan Produk</button>
+<div id="daftarProduk"></div>
+</div>
+
+<div id="riwayat" class="card hidden">
+<h3>Riwayat Transaksi</h3><div id="daftarTransaksi"></div>
+</div>
+
+<div id="laporan" class="card hidden">
+<h3>Laporan Penjualan</h3>
+<p id="ringkasan"></p>
+</div>
+
+<div id="backup" class="card hidden">
+<h3>Backup Data</h3>
+<button onclick="backup()">Unduh Backup JSON</button>
+<p><small>Simpan file backup di tempat aman. Backup secara berkala.</small></p>
+<input type="file" id="fileBackup" accept=".json">
+<button onclick="restore()">Pulihkan Backup</button>
+</div>
+</section>
+</main>
+
+<script>
+let produk=JSON.parse(localStorage.getItem('produk')||'[]');
+let transaksi=JSON.parse(localStorage.getItem('transaksi')||'[]');
+let keranjang=[];
+let pemilik=false;
+
+const rp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
+function simpanData(){
+ localStorage.setItem('produk',JSON.stringify(produk));
+ localStorage.setItem('transaksi',JSON.stringify(transaksi));
+}
+function login(){
+ let p=document.getElementById('pin').value;
+ if(p==='1234'||p==='0000'){
+  pemilik=p==='1234';
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  tampilkan();
+ }else alert('PIN salah');
+}
+function logout(){
+ document.getElementById('app').classList.add('hidden');
+ document.getElementById('login').classList.remove('hidden');
+ document.getElementById('pin').value='';
+}
+function show(id){
+ document.querySelectorAll('#app>.card').forEach(x=>x.classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+ tampilkan();
+}
+function simpanProduk(){
+ if(!pemilik)return alert('Hanya pemilik yang dapat mengelola produk');
+ let n=document.getElementById('nama').value.trim();
+ let m=Number(document.getElementById('modal').value);
+ let h=Number(document.getElementById('harga').value);
+ let s=Number(document.getElementById('stok').value);
+ if(!n||m<0||h<=0||s<0||!Number.isInteger(s))return alert('Periksa data produk');
+ produk.push({id:Date.now(),nama:n,modal:m,harga:h,stok:s});
+ simpanData();tampilkan();
+ ['nama','modal','harga','stok'].forEach(x=>document.getElementById(x).value='');
+ alert('Produk berhasil disimpan');
+}
+function hapusProduk(id){
+ if(!pemilik)return;
+ if(confirm('Hapus produk ini?')){
+  produk=produk.filter(p=>p.id!==id);simpanData();tampilkan();
+ }
+}
+function tambahKeranjang(){
+ let id=Number(document.getElementById('pilihProduk').value);
+ let p=produk.find(x=>x.id===id);
+ let j=Number(document.getElementById('jumlah').value);
+ if(!p||!Number.isInteger(j)||j<1)return alert('Pilih produk dan jumlah yang benar');
+ let sudah=keranjang.filter(x=>x.id===id).reduce((a,x)=>a+x.jumlah,0);
+ if(j+sudah>p.stok)return alert('Stok tidak mencukupi');
+ keranjang.push({id,nama:p.nama,harga:p.harga,modal:p.modal,jumlah:j});
+ tampilkanKeranjang();
+}
+function tampilkanKeranjang(){
+ let el=document.getElementById('keranjang');
+ el.innerHTML=keranjang.map((x,i)=>`<div class="item">${x.nama} × ${x.jumlah} — ${rp(x.harga*x.jumlah)} <button class="red" onclick="hapusKeranjang(${i})">Hapus</button></div>`).join('');
+ document.getElementById('total').textContent='Total: '+rp(keranjang.reduce((a,x)=>a+x.harga*x.jumlah,0));
+}
+function hapusKeranjang(i){keranjang.splice(i,1);tampilkanKeranjang()}
+function simpanTransaksi(){
+ if(!keranjang.length)return alert('Keranjang masih kosong');
+ if(!document.getElementById('umur').checked)return alert('Konfirmasi pemeriksaan usia wajib dilakukan');
+ let total=keranjang.reduce((a,x)=>a+x.harga*x.jumlah,0);
+ let modal=keranjang.reduce((a,x)=>a+x.modal*x.jumlah,0);
+ for(let x of keranjang){
+  let p=produk.find(p=>p.id===x.id);
+  if(!p||p.stok<x.jumlah)return alert('Stok berubah atau tidak mencukupi');
+ }
+ keranjang.forEach(x=>produk.find(p=>p.id===x.id).stok-=x.jumlah);
+ let t={tanggal:new Date().toISOString(),items:keranjang,total,laba:total-modal,bayar:document.getElementById('bayar').value};
+ transaksi.push(t);simpanData();
+ let struk='21 VAPE STORE\n'+new Date(t.tanggal).toLocaleString('id-ID')+'\n\n'+
+ t.items.map(x=>x.nama+' x'+x.jumlah+' '+rp(x.harga*x.jumlah)).join('\n')+
+ '\n\nTOTAL '+rp(total)+'\nPembayaran: '+t.bayar+'\nTerima kasih';
+ alert('Transaksi berhasil disimpan\n\n'+struk);
+ keranjang=[];document.getElementById('umur').checked=false;
+ tampilkan();
+}
+function tampilkan(){
+ document.getElementById('pilihProduk').innerHTML=produk.map(p=>`<option value="${p.id}">${p.nama} — ${rp(p.harga)} (Stok ${p.stok})</option>`).join('');
+ document.getElementById('daftarProduk').innerHTML=produk.map(p=>`<div class="item"><b>${p.nama}</b><br>Modal ${rp(p.modal)} | Jual ${rp(p.harga)} | Margin ${rp(p.harga-p.modal)} | Stok ${p.stok}${pemilik?`<button class="red" onclick="hapusProduk(${p.id})">Hapus</button>`:''}</div>`).join('');
+ document.getElementById('daftarTransaksi').innerHTML=transaksi.slice().reverse().map(t=>`<div class="item">${new Date(t.tanggal).toLocaleString('id-ID')}<br>Total ${rp(t.total)} | Laba kotor ${rp(t.laba)}<br>${t.bayar}</div>`).join('');
+ let omzet=transaksi.reduce((a,t)=>a+t.total,0);
+ let laba=transaksi.reduce((a,t)=>a+t.laba,0);
+ document.getElementById('ringkasan').innerHTML='Jumlah transaksi: '+transaksi.length+'<br>Omzet: '+rp(omzet)+'<br>Laba kotor: '+rp(laba);
+ tampilkanKeranjang();
+}
+function backup(){
+ let data=JSON.stringify({produk,transaksi});
+ let a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
+ a.download='backup-kasir-vape-mini.json';a.click();
+ URL.revokeObjectURL(a.href);
+}
+function restore(){
+ let f=document.getElementById('fileBackup').files[0];
+ if(!f)return alert('Pilih file backup');
+ let r=new FileReader();
+ r.onload=()=>{
+  try{
+   let d=JSON.parse(r.result);
+   if(!Array.isArray(d.produk)||!Array.isArray(d.transaksi))throw Error();
+   produk=d.produk;transaksi=d.transaksi;simpanData();tampilkan();
+   alert('Backup berhasil dipulihkan');
+  }catch(e){alert('File backup tidak valid')}
+ };
+ r.readAsText(f);
+}
+</script>
+</body>
+</html>
