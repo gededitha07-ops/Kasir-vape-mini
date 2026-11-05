@@ -242,29 +242,13 @@ function restore(){
   let laba = daftar.reduce((a,t)=>a+Number(t.laba||0),0);
   let modal = omzet-laba;
 
-  let jendela = window.open("", "_blank");
-
-  if (!jendela) {
-    alert("Tidak dapat membuka laporan");
-    return;
-  }
-
-  jendela.document.write(`
+  let isi = `
     <html>
     <head>
+      <meta charset="UTF-8">
       <title>Laporan 21Vapor</title>
-      <style>
-        body {font-family:Arial;padding:20px}
-        button {padding:12px;margin:5px;font-size:16px}
-        @media print {.tombol {display:none}}
-      </style>
     </head>
-    <body>
-      <div class="tombol">
-        <button onclick="history.back()">Kembali</button>
-        <button onclick="window.print()">Simpan PDF / Cetak</button>
-      </div>
-
+    <body style="font-family:Arial;padding:20px">
       <h2>Laporan Penjualan 21Vapor</h2>
       <h3>Bulan: ${bulan}</h3>
       <p>Jumlah transaksi: ${daftar.length}</p>
@@ -279,9 +263,13 @@ function restore(){
       `).join('')}
     </body>
     </html>
-  `);
+  `;
 
-  jendela.document.close();
+  if (window.Android && Android.printReport) {
+    Android.printReport(isi);
+  } else {
+    alert("Fitur cetak laporan belum terhubung");
+  }
 }
 </script>
 </body>
