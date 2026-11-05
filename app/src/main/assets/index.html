@@ -226,7 +226,7 @@ function restore(){
  };
  r.readAsText(f);
 }
-  function cetakLaporanBulanan() {
+ function cetakLaporanBulanan() {
   let bulan = document.getElementById("bulanLaporan").value;
 
   if (!bulan) {
@@ -238,14 +238,33 @@ function restore(){
     t.tanggal && t.tanggal.startsWith(bulan)
   );
 
-  let omzet = daftar.reduce((a, t) => a + Number(t.total || 0), 0);
-  let laba = daftar.reduce((a, t) => a + Number(t.laba || 0), 0);
-  let modal = omzet - laba;
+  let omzet = daftar.reduce((a,t)=>a+Number(t.total||0),0);
+  let laba = daftar.reduce((a,t)=>a+Number(t.laba||0),0);
+  let modal = omzet-laba;
 
-  let isi = `
+  let jendela = window.open("", "_blank");
+
+  if (!jendela) {
+    alert("Tidak dapat membuka laporan");
+    return;
+  }
+
+  jendela.document.write(`
     <html>
-    <head><title>Laporan 21Vapor</title></head>
+    <head>
+      <title>Laporan 21Vapor</title>
+      <style>
+        body {font-family:Arial;padding:20px}
+        button {padding:12px;margin:5px;font-size:16px}
+        @media print {.tombol {display:none}}
+      </style>
+    </head>
     <body>
+      <div class="tombol">
+        <button onclick="history.back()">Kembali</button>
+        <button onclick="window.print()">Simpan PDF / Cetak</button>
+      </div>
+
       <h2>Laporan Penjualan 21Vapor</h2>
       <h3>Bulan: ${bulan}</h3>
       <p>Jumlah transaksi: ${daftar.length}</p>
@@ -260,16 +279,9 @@ function restore(){
       `).join('')}
     </body>
     </html>
-  `;
+  `);
 
-  let jendela = window.open("", "_blank");
-  if (!jendela) {
-    alert("Tidak dapat membuka halaman cetak");
-    return;
-  }
-  jendela.document.write(isi);
   jendela.document.close();
-  jendela.print();
 }
 </script>
 </body>
