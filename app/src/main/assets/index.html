@@ -73,8 +73,16 @@ small{color:#666}
 </div>
 
 <div id="laporan" class="card hidden">
-<h3>Laporan Penjualan</h3>
-<p id="ringkasan"></p>
+  <h3>Laporan Penjualan</h3>
+
+  <label>Pilih Bulan</label>
+  <input type="month" id="bulanLaporan">
+
+  <p id="ringkasan"></p>
+
+  <button onclick="cetakLaporanBulanan()">
+    Cetak Laporan Bulanan
+  </button>
 </div>
 
 <div id="backup" class="card hidden">
