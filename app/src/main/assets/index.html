@@ -167,7 +167,18 @@ function simpanTransaksi(){
  t.items.map(x=>x.nama+' x'+x.jumlah+' '+rp(x.harga*x.jumlah)).join('\n')+
  '\n\nTOTAL '+rp(total)+'\nPembayaran: '+t.bayar+'\nTerima kasih';
  alert('Transaksi berhasil disimpan\n\n'+struk);
- keranjang=[];document.getElementById('umur').checked=false;
+
+let pilihan = prompt(
+    'Pilih tindakan struk:\n1 = Simpan PDF\n2 = Bagikan WhatsApp\n\nMasukkan 1 atau 2:'
+);
+
+if (pilihan === '1') {
+    Android.printReceipt(struk);
+} else if (pilihan === '2') {
+    Android.shareReceipt(struk);
+}
+
+keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
 function tampilkan(){
