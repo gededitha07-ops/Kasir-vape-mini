@@ -168,15 +168,17 @@ function simpanTransaksi(){
  '\n\nTOTAL '+rp(total)+'\nPembayaran: '+t.bayar+'\nTerima kasih';
  alert('Transaksi berhasil disimpan\n\n'+struk);
 
-let pilihan = prompt(
-    'Pilih tindakan struk:\n1 = Simpan PDF\n2 = Bagikan WhatsApp\n\nMasukkan 1 atau 2:'
-);
+setTimeout(function() {
+    let pilihan = confirm(
+        'Pilih OK untuk menyimpan PDF.\nPilih Batal untuk membagikan struk.'
+    );
 
-if (pilihan === '1') {
-    Android.printReceipt(struk);
-} else if (pilihan === '2') {
-    Android.shareReceipt(struk);
-}
+    if (pilihan) {
+        Android.printReceipt(struk);
+    } else {
+        Android.shareReceipt(struk);
+    }
+}, 300);
 
 keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
