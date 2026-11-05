@@ -179,12 +179,17 @@ function tampilkan(){
  document.getElementById('ringkasan').innerHTML='Jumlah transaksi: '+transaksi.length+'<br>Omzet: '+rp(omzet)+'<br>Laba kotor: '+rp(laba);
  tampilkanKeranjang();
 }
-function backup(){
- let data=JSON.stringify({produk,transaksi});
- let a=document.createElement('a');
- a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
- a.download='backup-kasir-vape-mini.json';a.click();
- URL.revokeObjectURL(a.href);
+function backup() {
+    let data = JSON.stringify({
+        produk: produk,
+        transaksi: transaksi
+    });
+
+    if (window.Android && typeof Android.saveBackup === "function") {
+        Android.saveBackup(data);
+    } else {
+        alert("Fitur backup belum terhubung.");
+    }
 }
 function restore(){
  let f=document.getElementById('fileBackup').files[0];
