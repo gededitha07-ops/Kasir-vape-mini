@@ -275,74 +275,48 @@ function backup() {
         alert("Fitur backup belum terhubung.");
     }
 }
+  
+function pulihkanDariTeks(teks){
+ try {
+  let d = JSON.parse(teks);
+
+  if(!d || !Array.isArray(d.produk) ||
+     !Array.isArray(d.transaksi)){
+   throw new Error('Struktur backup tidak sesuai');
+  }
+
+  if(!confirm(
+   'Pulihkan '+d.produk.length+
+   ' produk dan '+d.transaksi.length+
+   ' transaksi? Data saat ini akan diganti.'
+  )){
+   return;
+  }
+
+  produk = d.produk;
+  transaksi = d.transaksi;
+
+  simpanData();
+  tampilkan();
+
+  alert('Backup berhasil dipulihkan');
+
+ } catch(e) {
+  alert('Backup tidak valid: '+e.message);
+ }
+}
+
+
 
 function restore(){
  let f=document.getElementById('fileBackup').files[0];
+
  if(!f)return alert('Pilih file backup');
 
- let r=new FileReader();
-
- r.onload=()=>{
-  try{
-   let teks=String(r.result||'').trim();
-    alert(
- 'Nama file: '+f.name+
- '\nUkuran file: '+f.size+' byte'+
- '\nTeks terbaca: '+teks.length+' karakter'
-);
-if(!teks)throw Error('File kosong');
-let d=JSON.parse(teks);
-    console.log('Isi file backup:',teks);
-
-   if(!d || !Array.isArray(d.produk) ||
-      !Array.isArray(d.transaksi)){
-     throw Error('Struktur backup tidak sesuai');
-   }
-
-   let produkValid=d.produk.every(p=>
-     p && p.id!=null &&
-     typeof p.nama==='string' &&
-     Number.isFinite(Number(p.modal)) &&
-     Number.isFinite(Number(p.harga)) &&
-     Number.isFinite(Number(p.stok))
-   );
-
-   let transaksiValid=d.transaksi.every(t=>
-     t && t.tanggal &&
-     Number.isFinite(Number(t.total)) &&
-     Number.isFinite(Number(t.laba)) &&
-     Array.isArray(t.items)
-   );
-
-   if(!produkValid || !transaksiValid){
-     throw Error('Data backup tidak lengkap');
-   }
-
-   if(!confirm('Pulihkan '+d.produk.length+
-      ' produk dan '+d.transaksi.length+
-      ' transaksi? Data saat ini akan diganti.')){
-     return;
-   }
-
-   produk=d.produk;
-   transaksi=d.transaksi;
-
-   simpanData();
-   tampilkan();
-
-   alert('Backup berhasil dipulihkan');
-
-  }catch(e){
-   alert('File backup tidak valid: '+e.message);
-  }
- };
-
- r.onerror=()=>{
-  alert('Gagal membaca file backup');
- };
-
- r.readAsText(f);
+ // Pembacaan file dilakukan oleh Android Java
+ // melalui fungsi pulihkanDariTeks()
 }
+
 
  function cetakLaporanBulanan() {
   let bulan = document.getElementById("bulanLaporan").value;
