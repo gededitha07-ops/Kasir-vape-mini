@@ -284,7 +284,15 @@ function restore(){
 
  r.onload=()=>{
   try{
-   let d=JSON.parse(r.result);
+   let teks=String(r.result||'').trim();
+    alert(
+ 'Nama file: '+f.name+
+ '\nUkuran file: '+f.size+' byte'+
+ '\nTeks terbaca: '+teks.length+' karakter'
+);
+if(!teks)throw Error('File kosong');
+let d=JSON.parse(teks);
+    console.log('Isi file backup:',teks);
 
    if(!d || !Array.isArray(d.produk) ||
       !Array.isArray(d.transaksi)){
