@@ -266,9 +266,30 @@ function simpanTransaksi(){
  keranjang.forEach(x=>produk.find(p=>p.id===x.id).stok-=x.jumlah);
  let t={tanggal:new Date().toISOString(),items:keranjang,total,laba:total-modal,bayar:document.getElementById('bayar').value};
  transaksi.push(t);simpanData();
- let struk='21 VAPE STORE\n'+new Date(t.tanggal).toLocaleString('id-ID')+'\n\n'+
- t.items.map(x=>x.nama+' x'+x.jumlah+' '+rp(x.harga*x.jumlah)).join('\n')+
- '\n\nTOTAL '+rp(total)+'\nPembayaran: '+t.bayar+'\nTerima kasih';
+ let nomorStruk = '21V-' + Date.now().toString().slice(-8);
+
+let garis = '--------------------------------';
+
+let struk =
+'       TWENTY ONE VAPOR\n' +
+'          21 VAPE STORE\n' +
+garis + '\n' +
+'          STRUK PEMBELIAN\n' +
+garis + '\n' +
+'No. Transaksi : ' + nomorStruk + '\n' +
+'Tanggal       : ' + new Date(t.tanggal).toLocaleString('id-ID') + '\n' +
+garis + '\n' +
+t.items.map(x =>
+ x.nama + '\n' +
+ x.jumlah + ' x ' + rp(x.harga) + ' = ' + rp(x.harga*x.jumlah)
+).join('\n') +
+'\n' + garis + '\n' +
+' TOTAL       : ' + rp(total) + '\n' +
+' Pembayaran  : ' + t.bayar + '\n' +
+garis + '\n' +
+'       TERIMA KASIH\n' +
+'     SELAMAT BERBELANJA\n' +
+'       TWENTY ONE VAPOR';
  alert('Transaksi berhasil disimpan\n\n'+struk);
 
 setTimeout(function() {
