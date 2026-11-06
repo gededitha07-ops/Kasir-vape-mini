@@ -42,6 +42,9 @@ style="width:120px;height:120px;object-fit:contain;display:block;margin:10px aut
 
 <section id="app" class="hidden">
 <nav>
+ <button id="tabDashboard" onclick="show('dashboard')">
+Dashboard Pemilik
+</button>
 <button onclick="show('jual')">Kasir</button>
 <button id="tabProduk" onclick="show('produk')">Produk</button>
 <button onclick="show('riwayat')">Riwayat</button>
@@ -49,7 +52,39 @@ style="width:120px;height:120px;object-fit:contain;display:block;margin:10px aut
 <button onclick="show('backup')">Backup</button>
 <button onclick="logout()">Keluar</button>
 </nav>
+<div id="dashboard" class="card hidden">
+<h3>Dashboard Pemilik</h3>
 
+<div class="item">
+<b>Omzet Hari Ini</b>
+<h2 id="dashOmzet">Rp0</h2>
+</div>
+
+<div class="item">
+<b>Laba Kotor Hari Ini</b>
+<h2 id="dashLaba">Rp0</h2>
+</div>
+
+<div class="item">
+<b>Jumlah Transaksi Hari Ini</b>
+<h2 id="dashTransaksi">0</h2>
+</div>
+
+<div class="item">
+<b>Jumlah Produk</b>
+<h2 id="dashProduk">0</h2>
+</div>
+
+<div class="item">
+<b>Stok Menipis</b>
+<div id="dashStok"></div>
+</div>
+
+<div class="item">
+<b>Produk Terlaris</b>
+<div id="dashTerlaris"></div>
+</div>
+</div>
 <div id="jual" class="card">
 <h3>Transaksi Penjualan</h3>
 <input
@@ -135,11 +170,17 @@ function login(){
   document.getElementById('login').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
 
-  // Tab Produk hanya untuk Pemilik
+  // Menu khusus Pemilik
   document.getElementById('tabProduk').style.display =
    pemilik ? '' : 'none';
 
+  document.getElementById('tabDashboard').style.display =
+   pemilik ? '' : 'none';
+
   tampilkan();
+
+  // Pemilik masuk Dashboard, Kasir masuk Penjualan
+  show(pemilik ? 'dashboard' : 'jual');
 
  }else {
   alert('PIN salah');
@@ -147,16 +188,21 @@ function login(){
 }
 
 function logout(){
+ pemilik = false;
+
  document.getElementById('app').classList.add('hidden');
  document.getElementById('login').classList.remove('hidden');
  document.getElementById('pin').value='';
+
+ document.getElementById('tabProduk').style.display='none';
+ document.getElementById('tabDashboard').style.display='none';
 }
 
 function show(id){
 
- // Kasir tidak boleh membuka halaman Produk
- if(id==='produk' && !pemilik){
-  alert('Menu Produk hanya dapat dibuka oleh Pemilik');
+ // Kasir tidak boleh membuka Dashboard atau Produk
+ if((id==='produk' || id==='dashboard') && !pemilik){
+  alert('Halaman ini hanya dapat dibuka oleh Pemilik');
   show('jual');
   return;
  }
@@ -308,9 +354,68 @@ keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
 
+function tampilkanDashboard(){
 
+ let hariIni = new Date().toDateString();
+
+ // Transaksi hari ini
+ let transaksiHariIni = transaksi.filter(t =>
+  new Date(t.tanggal).toDateString() === hariIni
+ );
+
+ // Omzet hari ini
+ let omzet = transaksiHariIni.reduce(
+  (a,t) => a + t.total, 0
+ );
+
+ // Laba hari ini
+ let laba = transaksiHariIni.reduce(
+  (a,t) => a + t.laba, 0
+ );
+
+ document.getElementById('dashOmzet').innerText = rp(omzet);
+ document.getElementById('dashLaba').innerText = rp(laba);
+ document.getElementById('dashTransaksi').innerText =
+  transaksiHariIni.length;
+
+ // Jumlah produk
+ document.getElementById('dashProduk').innerText =
+  produk.length;
+
+ // Stok menipis (5 atau kurang)
+ let stokMenipis = produk.filter(p => p.stok <= 5);
+
+ document.getElementById('dashStok').innerHTML =
+  stokMenipis.length
+   ? stokMenipis.map(p =>
+      `<div>${p.nama} — Stok: ${p.stok}</div>`
+     ).join('')
+   : 'Tidak ada stok menipis';
+
+ // Produk terlaris hari ini
+ let penjualan = {};
+
+ transaksiHariIni.forEach(t => {
+  t.items.forEach(x => {
+   penjualan[x.nama] =
+    (penjualan[x.nama] || 0) + x.jumlah;
+  });
+ });
+
+ let terlaris = Object.entries(penjualan)
+  .sort((a,b) => b[1] - a[1])
+  .slice(0,5);
+
+ document.getElementById('dashTerlaris').innerHTML =
+  terlaris.length
+   ? terlaris.map(x =>
+      `<div>${x[0]} — ${x[1]} terjual</div>`
+     ).join('')
+   : 'Belum ada penjualan hari ini';
+}
+ 
 function tampilkan(){
-
+if(pemilik) tampilkanDashboard();
  let kataKasir = (
   document.getElementById('cariKasir')?.value || ''
  ).toLowerCase();
