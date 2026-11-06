@@ -44,6 +44,12 @@ small{color:#666}
 
 <div id="jual" class="card">
 <h3>Transaksi Penjualan</h3>
+<input
+ id="cariKasir"
+ type="text"
+ placeholder="Cari produk untuk transaksi..."
+ oninput="tampilkan()">
+
 <select id="pilihProduk"></select>
 <input id="jumlah" type="number" min="1" value="1" placeholder="Jumlah">
 <button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
@@ -64,6 +70,12 @@ small{color:#666}
 <input id="harga" type="number" placeholder="Harga jual (Rp)">
 <input id="stok" type="number" placeholder="Stok awal">
 <button onclick="simpanProduk()">Simpan Produk</button>
+<input
+ id="cariProduk"
+ type="text"
+ placeholder="Cari nama produk..."
+ oninput="tampilkan()">
+
 <div id="daftarProduk"></div>
 </div>
 
@@ -241,10 +253,38 @@ keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
 
-function tampilkan(){
- document.getElementById('pilihProduk').innerHTML=produk.map(p=>`<option value="${p.id}">${p.nama} — ${rp(p.harga)} (Stok ${p.stok})</option>`).join('');
 
- document.getElementById('daftarProduk').innerHTML=produk.map(p=>`
+function tampilkan(){
+
+ let kataKasir = (
+  document.getElementById('cariKasir')?.value || ''
+ ).toLowerCase();
+
+ let produkKasir = produk.filter(p =>
+  p.nama.toLowerCase().includes(kataKasir)
+ );
+
+ let pilihan = document.getElementById('pilihProduk');
+ let pilihanLama = pilihan.value;
+
+ pilihan.innerHTML = produkKasir.map(p =>
+  `<option value="${p.id}">${p.nama} — ${rp(p.harga)} (Stok ${p.stok})</option>`
+ ).join('');
+
+ if(produkKasir.some(p => String(p.id) === pilihanLama)){
+  pilihan.value = pilihanLama;
+ }
+
+
+ let kataProduk = (
+ document.getElementById('cariProduk')?.value || ''
+).toLowerCase();
+
+let produkFilter = produk.filter(p =>
+ p.nama.toLowerCase().includes(kataProduk)
+);
+
+document.getElementById('daftarProduk').innerHTML=produkFilter.map(p=>`
  <div class="item">
  <b>${p.nama}</b><br>
  Modal ${rp(p.modal)} | Jual ${rp(p.harga)} | Margin ${rp(p.harga-p.modal)} | Stok ${p.stok}
