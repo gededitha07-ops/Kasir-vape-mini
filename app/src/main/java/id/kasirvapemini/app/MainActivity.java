@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.content.Intent;
 import android.net.Uri;
+import org.json.JSONObject;
 import android.print.PrintManager;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
@@ -186,9 +187,9 @@ private String bacaFile(Uri uri) throws IOException {
         super.onActivityResult(requestCode, resultCode, data);
 
         
+
 if (requestCode == OPEN_FILE) {
     if (fileCallback != null) {
-        Uri[] results = null;
 
         if (resultCode == RESULT_OK &&
             data != null && data.getData() != null) {
@@ -210,19 +211,17 @@ if (requestCode == OPEN_FILE) {
 
             } catch (Exception e) {
                 webView.evaluateJavascript(
-                    "alert('Gagal membaca backup: " +
-                    e.getMessage() + "')", null
+                    "alert('Gagal membaca file backup')", null
                 );
             }
-
-            results = new Uri[]{uri};
         }
 
-        fileCallback.onReceiveValue(results);
+        fileCallback.onReceiveValue(null);
         fileCallback = null;
     }
     return;
 }
+
 
 
         if (requestCode == CREATE_FILE &&
