@@ -35,7 +35,7 @@ small{color:#666}
 <section id="app" class="hidden">
 <nav>
 <button onclick="show('jual')">Kasir</button>
-<button onclick="show('produk')">Produk</button>
+<button id="tabProduk" onclick="show('produk')">Produk</button>
 <button onclick="show('riwayat')">Riwayat</button>
 <button onclick="show('laporan')">Laporan</button>
 <button onclick="show('backup')">Backup</button>
@@ -117,25 +117,51 @@ function simpanData(){
  localStorage.setItem('produk',JSON.stringify(produk));
  localStorage.setItem('transaksi',JSON.stringify(transaksi));
 }
+
 function login(){
  let p=document.getElementById('pin').value;
+
  if(p==='1234'||p==='0000'){
   pemilik=p==='1234';
+
   document.getElementById('login').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+
+  // Tab Produk hanya untuk Pemilik
+  document.getElementById('tabProduk').style.display =
+   pemilik ? '' : 'none';
+
   tampilkan();
- }else alert('PIN salah');
+
+ }else {
+  alert('PIN salah');
+ }
 }
+
 function logout(){
  document.getElementById('app').classList.add('hidden');
  document.getElementById('login').classList.remove('hidden');
  document.getElementById('pin').value='';
 }
+
 function show(id){
- document.querySelectorAll('#app>.card').forEach(x=>x.classList.add('hidden'));
+
+ // Kasir tidak boleh membuka halaman Produk
+ if(id==='produk' && !pemilik){
+  alert('Menu Produk hanya dapat dibuka oleh Pemilik');
+  show('jual');
+  return;
+ }
+
+ document.querySelectorAll('#app>.card').forEach(x=>
+  x.classList.add('hidden')
+ );
+
  document.getElementById(id).classList.remove('hidden');
+
  tampilkan();
 }
+
   
 let idProdukEdit = null;
 
