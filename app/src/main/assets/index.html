@@ -47,6 +47,9 @@ Dashboard Pemilik
 </button>
 <button onclick="show('jual')">Kasir</button>
 <button id="tabProduk" onclick="show('produk')">Produk</button>
+<button id="tabStok" onclick="show('stok')">
+Riwayat Stok
+</button>
 <button onclick="show('riwayat')">Riwayat</button>
 <button onclick="show('laporan')">Laporan</button>
 <button onclick="show('backup')">Backup</button>
@@ -121,7 +124,33 @@ Dashboard Pemilik
 
 <div id="daftarProduk"></div>
 </div>
+<div id="stok" class="card hidden">
+<h3>Riwayat Stok</h3>
 
+<div class="item">
+<b>Total Stok Masuk</b>
+<h3 id="totalStokMasuk">0</h3>
+</div>
+
+<div class="item">
+<b>Total Stok Keluar</b>
+<h3 id="totalStokKeluar">0</h3>
+</div>
+
+<div class="item">
+<b>Total Penyesuaian</b>
+<h3 id="totalPenyesuaian">0</h3>
+</div>
+
+<input
+ id="cariRiwayatStok"
+ type="text"
+ placeholder="Cari nama produk..."
+ oninput="tampilkanRiwayatStok()">
+
+<div id="daftarRiwayatStok"></div>
+
+</div>
 <div id="riwayat" class="card hidden">
 <h3>Riwayat Transaksi</h3><div id="daftarTransaksi"></div>
 </div>
@@ -154,6 +183,27 @@ let produk=JSON.parse(localStorage.getItem('produk')||'[]');
 let transaksi=JSON.parse(localStorage.getItem('transaksi')||'[]');
 let keranjang=[];
 let pemilik=false;
+ function catatRiwayatStok(
+ nama, jenis, jumlah, sebelum, sesudah
+){
+ let catatan = {
+  tanggal: new Date().toISOString(),
+  nama: nama,
+  jenis: jenis,
+  jumlah: jumlah,
+  sebelum: sebelum,
+  sesudah: sesudah,
+  petugas: pemilik ? 'Pemilik' : 'Kasir'
+ };
+
+ riwayatStok.push(catatan);
+
+ localStorage.setItem(
+  'riwayatStok',
+  JSON.stringify(riwayatStok)
+ );
+}
+let riwayatStok=JSON.parse(localStorage.getItem('riwayatStok')||'[]');
 
 const rp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
 function simpanData(){
@@ -173,7 +223,8 @@ function login(){
   // Menu khusus Pemilik
   document.getElementById('tabProduk').style.display =
    pemilik ? '' : 'none';
-
+  document.getElementById('tabStok').style.display =
+   pemilik ? '' : 'none';
   document.getElementById('tabDashboard').style.display =
    pemilik ? '' : 'none';
 
@@ -196,17 +247,16 @@ function logout(){
 
  document.getElementById('tabProduk').style.display='none';
  document.getElementById('tabDashboard').style.display='none';
+ document.getElementById('tabStok').style.display='none';
 }
-
 function show(id){
 
  // Kasir tidak boleh membuka Dashboard atau Produk
- if((id==='produk' || id==='dashboard') && !pemilik){
+ if((id==='produk' || id==='dashboard' || id==='stok') && !pemilik){
   alert('Halaman ini hanya dapat dibuka oleh Pemilik');
   show('jual');
   return;
- }
-
+}
  document.querySelectorAll('#app>.card').forEach(x=>
   x.classList.add('hidden')
  );
@@ -214,6 +264,9 @@ function show(id){
  document.getElementById(id).classList.remove('hidden');
 
  tampilkan();
+
+if(id==='stok'){
+ tampilkanRiwayatStok();
 }
 
   
@@ -251,21 +304,55 @@ function simpanProduk(){
    let p=produk.find(x=>x.id==idProdukEdit);
    if(!p)return alert('Produk tidak ditemukan');
 
+   let stokSebelum=Number(p.stok);
+   let perubahan=s-stokSebelum;
+
    p.nama=n;
    p.modal=m;
    p.harga=h;
    p.stok=s;
 
+   if(perubahan>0){
+     catatRiwayatStok(
+       p.nama,
+       'Stok Masuk',
+       perubahan,
+       stokSebelum,
+       s
+     );
+   }else if(perubahan<0){
+     catatRiwayatStok(
+       p.nama,
+       'Penyesuaian',
+       Math.abs(perubahan),
+       stokSebelum,
+       s
+     );
+   }
+
    idProdukEdit=null;
    alert('Produk berhasil diperbarui');
+
  }else{
+   let idBaru=Date.now();
+
    produk.push({
-     id:Date.now(),
+     id:idBaru,
      nama:n,
      modal:m,
      harga:h,
      stok:s
    });
+
+   if(s>0){
+     catatRiwayatStok(
+       n,
+       'Stok Masuk',
+       s,
+       0,
+       s
+     );
+   }
 
    alert('Produk berhasil disimpan');
  }
@@ -309,7 +396,20 @@ function simpanTransaksi(){
   let p=produk.find(p=>p.id===x.id);
   if(!p||p.stok<x.jumlah)return alert('Stok berubah atau tidak mencukupi');
  }
- keranjang.forEach(x=>produk.find(p=>p.id===x.id).stok-=x.jumlah);
+ keranjang.forEach(x=>{
+ let p=produk.find(p=>p.id===x.id);
+
+ let stokSebelum=p.stok;
+ p.stok-=x.jumlah;
+
+ catatRiwayatStok(
+  p.nama,
+  'Stok Keluar',
+  x.jumlah,
+  stokSebelum,
+  p.stok
+ );
+});
  let t={tanggal:new Date().toISOString(),items:keranjang,total,laba:total-modal,bayar:document.getElementById('bayar').value};
  transaksi.push(t);simpanData();
  let nomorStruk = '21V-' + Date.now().toString().slice(-8);
@@ -353,7 +453,51 @@ setTimeout(function() {
 keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
+function tampilkanRiwayatStok(){
 
+ let masuk = riwayatStok
+  .filter(x=>x.jenis==='Stok Masuk')
+  .reduce((a,x)=>a+x.jumlah,0);
+
+ let keluar = riwayatStok
+  .filter(x=>x.jenis==='Stok Keluar')
+  .reduce((a,x)=>a+x.jumlah,0);
+
+ let penyesuaian = riwayatStok
+  .filter(x=>x.jenis==='Penyesuaian')
+  .reduce((a,x)=>a+x.jumlah,0);
+
+ document.getElementById('totalStokMasuk').innerText =
+  masuk + ' unit';
+
+ document.getElementById('totalStokKeluar').innerText =
+  keluar + ' unit';
+
+ document.getElementById('totalPenyesuaian').innerText =
+  penyesuaian + ' unit perubahan';
+
+ let kata = (
+  document.getElementById('cariRiwayatStok')?.value || ''
+ ).toLowerCase();
+
+ let data = riwayatStok
+  .filter(x=>x.nama.toLowerCase().includes(kata))
+  .slice()
+  .reverse();
+
+ document.getElementById('daftarRiwayatStok').innerHTML =
+  data.length ? data.map(x=>`
+   <div class="item">
+    <b>${x.nama}</b><br>
+    ${x.jenis}<br>
+    Perubahan: ${x.jenis==='Stok Keluar'||(x.jenis==='Penyesuaian'&&x.sesudah<x.sebelum)?'-':'+'}${x.jumlah} unit<br>
+    Stok sebelumnya: ${x.sebelum}<br>
+    Stok sekarang: ${x.sesudah}<br>
+    Petugas: ${x.petugas}<br>
+    <small>${new Date(x.tanggal).toLocaleString('id-ID')}</small>
+   </div>
+  `).join('') : 'Belum ada riwayat stok';
+}
 function tampilkanDashboard(){
 
  let hariIni = new Date().toDateString();
@@ -466,7 +610,8 @@ document.getElementById('daftarProduk').innerHTML=produkFilter.map(p=>`
 function backup() {
     let data = JSON.stringify({
         produk: produk,
-        transaksi: transaksi
+        transaksi: transaksi,
+        riwayatStok: riwayatStok
     });
 
     if (window.Android && typeof Android.saveBackup === "function") {
@@ -496,10 +641,25 @@ function pulihkanDariTeks(teks){
   produk = d.produk;
   transaksi = d.transaksi;
 
+  // Mendukung backup lama
+  riwayatStok = Array.isArray(d.riwayatStok)
+   ? d.riwayatStok
+   : [];
+
+  localStorage.setItem(
+   'riwayatStok',
+   JSON.stringify(riwayatStok)
+  );
+
   simpanData();
   tampilkan();
 
-  alert('Backup berhasil dipulihkan');
+  alert(
+   'Backup berhasil dipulihkan\n' +
+   'Produk: '+produk.length+
+   '\nTransaksi: '+transaksi.length+
+   '\nRiwayat stok: '+riwayatStok.length
+  );
 
  } catch(e) {
   alert('Backup tidak valid: '+e.message);
