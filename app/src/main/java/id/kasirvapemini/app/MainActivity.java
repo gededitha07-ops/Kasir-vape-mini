@@ -33,32 +33,32 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
 
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onShowFileChooser(
-                WebView view,
-                ValueCallback<Uri[]> callback,
-                FileChooserParams params
-            ) {
-                if (fileCallback != null) {
-                    fileCallback.onReceiveValue(null);
-                }
+        
+webView.setWebChromeClient(new WebChromeClient() {
+    @Override
+    public boolean onShowFileChooser(
+        WebView view,
+        ValueCallback<Uri[]> callback,
+        FileChooserParams params
+    ) {
+        if (fileCallback != null) {
+            fileCallback.onReceiveValue(null);
+        }
 
-                fileCallback = callback;
+        fileCallback = callback;
 
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
+        try {
+            Intent intent = params.createIntent();
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivityForResult(intent, OPEN_FILE);
+            return true;
+        } catch (Exception e) {
+            fileCallback = null;
+            return false;
+        }
+    }
+});
 
-                try {
-                    startActivityForResult(intent, OPEN_FILE);
-                    return true;
-                } catch (Exception e) {
-                    fileCallback = null;
-                    return false;
-                }
-            }
-        });
 
         webView.addJavascriptInterface(new Object() {
             @JavascriptInterface
