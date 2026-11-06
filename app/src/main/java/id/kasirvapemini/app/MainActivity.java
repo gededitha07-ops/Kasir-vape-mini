@@ -16,6 +16,10 @@ import android.webkit.JavascriptInterface;
 import java.io.OutputStream;
 import java.io.IOException;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 public class MainActivity extends Activity {
     private WebView webView;
     private String backupData = "";
@@ -155,6 +159,25 @@ webView.setWebChromeClient(new WebChromeClient() {
         webView.loadUrl("file:///android_asset/index.html");
         setContentView(webView);
     }
+    
+private String bacaFile(Uri uri) throws IOException {
+    StringBuilder hasil = new StringBuilder();
+
+    try (InputStream input =
+             getContentResolver().openInputStream(uri);
+         BufferedReader reader =
+             new BufferedReader(
+                 new InputStreamReader(input, "UTF-8"))) {
+
+        String baris;
+        while ((baris = reader.readLine()) != null) {
+            hasil.append(baris).append("\n");
+        }
+    }
+
+    return hasil.toString();
+}
+
 
     @Override
     protected void onActivityResult(
@@ -162,20 +185,45 @@ webView.setWebChromeClient(new WebChromeClient() {
     ) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == OPEN_FILE) {
-            if (fileCallback != null) {
-                Uri[] results = null;
+        
+if (requestCode == OPEN_FILE) {
+    if (fileCallback != null) {
+        Uri[] results = null;
 
-                if (resultCode == RESULT_OK &&
-                    data != null && data.getData() != null) {
-                    results = new Uri[]{data.getData()};
+        if (resultCode == RESULT_OK &&
+            data != null && data.getData() != null) {
+
+            Uri uri = data.getData();
+
+            try {
+                String isiBackup = bacaFile(uri);
+
+                if (isiBackup.trim().isEmpty()) {
+                    throw new IOException("File backup kosong");
                 }
 
-                fileCallback.onReceiveValue(results);
-                fileCallback = null;
+                String json = JSONObject.quote(isiBackup);
+
+                webView.evaluateJavascript(
+                    "pulihkanDariTeks(" + json + ")", null
+                );
+
+            } catch (Exception e) {
+                webView.evaluateJavascript(
+                    "alert('Gagal membaca backup: " +
+                    e.getMessage() + "')", null
+                );
             }
-            return;
+
+            results = new Uri[]{uri};
         }
+
+        fileCallback.onReceiveValue(results);
+        fileCallback = null;
+    }
+    return;
+}
+
 
         if (requestCode == CREATE_FILE &&
             resultCode == RESULT_OK &&
