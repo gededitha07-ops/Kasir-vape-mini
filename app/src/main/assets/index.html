@@ -248,6 +248,7 @@ const rp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
 function simpanData(){
  localStorage.setItem('produk',JSON.stringify(produk));
  localStorage.setItem('transaksi',JSON.stringify(transaksi));
+ localStorage.setItem('riwayatStok',JSON.stringify(riwayatStok));
 }
 
 function login(){
@@ -408,6 +409,9 @@ function simpanProduk(){
 
  simpanData();
  tampilkan();
+ alert(
+ 'Jumlah riwayat stok: ' + riwayatStok.length
+);
 
  ['nama','modal','harga','stok'].forEach(x=>
  document.getElementById(x).value=''
