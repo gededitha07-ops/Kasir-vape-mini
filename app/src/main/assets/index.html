@@ -128,23 +128,42 @@ Printer
 
 <div id="daftarProduk"></div>
 </div>
+
 <div id="stok" class="card hidden">
 <h3>Riwayat Stok</h3>
 
+<label>Filter Tanggal</label>
+<input
+ id="tanggalFilterStok"
+ type="date"
+ onchange="tampilkanRiwayatStok()">
+
+<button
+ type="button"
+ onclick="resetFilterStok()">
+Tampilkan Semua Tanggal
+</button>
+
+<hr>
+
 <div class="item">
-<b>Total Stok Masuk</b>
-<h3 id="totalStokMasuk">0</h3>
+ <b>Total Stok Masuk</b>
+ <h3 id="totalStokMasuk">0 unit</h3>
 </div>
 
 <div class="item">
-<b>Total Stok Keluar</b>
-<h3 id="totalStokKeluar">0</h3>
+ <b>Total Stok Keluar</b>
+ <h3 id="totalStokKeluar">0 unit</h3>
 </div>
 
 <div class="item">
-<b>Total Penyesuaian</b>
-<h3 id="totalPenyesuaian">0</h3>
+ <b>Total Penyesuaian</b>
+ <h3 id="totalPenyesuaian">0 unit perubahan</h3>
 </div>
+
+<hr>
+
+<h3>Rincian Stok Per Produk</h3>
 
 <input
  id="cariRiwayatStok"
@@ -155,6 +174,7 @@ Printer
 <div id="daftarRiwayatStok"></div>
 
 </div>
+
 <div id="riwayat" class="card hidden">
 <h3>Riwayat Transaksi</h3><div id="daftarTransaksi"></div>
 </div>
@@ -525,48 +545,57 @@ keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
 function tampilkanRiwayatStok(){
- let masuk = riwayatStok
-  .filter(x=>x.jenis==='Stok Masuk')
-  .reduce((a,x)=>a+x.jumlah,0);
 
- let keluar = riwayatStok
-  .filter(x=>x.jenis==='Stok Keluar')
-  .reduce((a,x)=>a+x.jumlah,0);
+ let tanggal = document.getElementById('tanggalFilterStok')?.value || '';
 
- let penyesuaian = riwayatStok
-  .filter(x=>x.jenis==='Penyesuaian')
-  .reduce((a,x)=>a+x.jumlah,0);
+ let dataTanggal = riwayatStok.filter(x =>
+  !tanggal || (x.tanggal && tanggalLokal(x.tanggal) === tanggal)
+ );
 
- document.getElementById('totalStokMasuk').innerText =
-  masuk + ' unit';
+ let masuk = dataTanggal
+  .filter(x => x.jenis === 'Stok Masuk')
+  .reduce((a,x) => a + Number(x.jumlah || 0), 0);
 
- document.getElementById('totalStokKeluar').innerText =
-  keluar + ' unit';
+ let keluar = dataTanggal
+  .filter(x => x.jenis === 'Stok Keluar')
+  .reduce((a,x) => a + Number(x.jumlah || 0), 0);
 
- document.getElementById('totalPenyesuaian').innerText =
-  penyesuaian + ' unit perubahan';
+ let penyesuaian = dataTanggal
+  .filter(x => x.jenis === 'Penyesuaian')
+  .reduce((a,x) => a + Number(x.jumlah || 0), 0);
+
+ document.getElementById('totalStokMasuk').innerText = masuk + ' unit';
+ document.getElementById('totalStokKeluar').innerText = keluar + ' unit';
+ document.getElementById('totalPenyesuaian').innerText = penyesuaian + ' unit perubahan';
 
  let kata = (
   document.getElementById('cariRiwayatStok')?.value || ''
  ).toLowerCase();
 
- let data = riwayatStok
-  .filter(x=>x.nama.toLowerCase().includes(kata))
+ let data = dataTanggal
+  .filter(x => String(x.nama || '').toLowerCase().includes(kata))
   .slice()
   .reverse();
 
  document.getElementById('daftarRiwayatStok').innerHTML =
-  data.length ? data.map(x=>`
+  data.length ? data.map(x => `
    <div class="item">
-    <b>${x.nama}</b><br>
+    <b>${x.nama || 'Produk'}</b><br>
     ${x.jenis}<br>
-    Perubahan: ${x.jenis==='Stok Keluar'||(x.jenis==='Penyesuaian'&&x.sesudah<x.sebelum)?'-':'+'}${x.jumlah} unit<br>
+    Perubahan:
+    ${x.jenis === 'Stok Keluar' ||
+      (x.jenis === 'Penyesuaian' && Number(x.sesudah) < Number(x.sebelum))
+      ? '-' : '+'}${x.jumlah} unit<br>
     Stok sebelumnya: ${x.sebelum}<br>
     Stok sekarang: ${x.sesudah}<br>
-    Petugas: ${x.petugas}<br>
-    <small>${new Date(x.tanggal).toLocaleString('id-ID')}</small>
+    Petugas: ${x.petugas || '-'}<br>
+    <small>${x.tanggal ? new Date(x.tanggal).toLocaleString('id-ID') : '-'}</small>
    </div>
   `).join('') : 'Belum ada riwayat stok';
+}
+ function resetFilterStok(){
+ document.getElementById('tanggalFilterStok').value = '';
+ tampilkanRiwayatStok();
 }
 function tampilkanDashboard(){
 
