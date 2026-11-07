@@ -171,7 +171,42 @@ Printer
     Cetak Laporan Bulanan
   </button>
 </div>
+<div id="printer" class="card hidden">
 
+    <h3>Pengaturan Printer Bluetooth</h3>
+
+    <label>Printer yang sudah dipasangkan</label>
+
+    <select id="printerList">
+        <option value="">Pilih printer</option>
+    </select>
+
+    <button onclick="refreshPrinter()">
+        Cari Printer
+    </button>
+
+    <button onclick="hubungkanPrinter()">
+        Hubungkan
+    </button>
+
+    <button onclick="putuskanPrinter()">
+        Putuskan Koneksi
+    </button>
+
+    <hr>
+
+    <label>Ukuran Kertas</label>
+
+    <select id="ukuranKertas">
+        <option value="58">58 mm</option>
+        <option value="80">80 mm</option>
+    </select>
+
+    <p id="statusPrinter">
+        Printer belum dipilih
+    </p>
+
+</div>
 <div id="backup" class="card hidden">
 <h3>Backup Data</h3>
 <button onclick="backup()">Unduh Backup JSON</button>
