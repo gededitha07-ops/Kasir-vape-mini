@@ -824,6 +824,74 @@ if (pilihan === '1') {
     alert("Fitur cetak laporan belum terhubung");
   }
 }
+ // PENGATURAN PRINTER BLUETOOTH
+
+function refreshPrinter() {
+    try {
+        let daftar = JSON.parse(Android.getPairedPrinters());
+        let pilihan = document.getElementById('printerList');
+
+        pilihan.innerHTML =
+            '<option value="">Pilih printer</option>';
+
+        if (daftar.length === 0) {
+            document.getElementById('statusPrinter').innerText =
+                'Belum ada printer yang dipasangkan';
+            return;
+        }
+
+        daftar.forEach(function(p) {
+            let option = document.createElement('option');
+            option.value = p.address;
+            option.textContent = p.name + ' (' + p.address + ')';
+            pilihan.appendChild(option);
+        });
+
+        let tersimpan = localStorage.getItem('printerBluetooth');
+
+        if (tersimpan) {
+            pilihan.value = tersimpan;
+        }
+
+        document.getElementById('statusPrinter').innerText =
+            daftar.length + ' perangkat ditemukan';
+
+    } catch (e) {
+        alert('Gagal mencari printer Bluetooth');
+    }
+}
+
+function hubungkanPrinter() {
+    let alamat =
+        document.getElementById('printerList').value;
+
+    if (!alamat) {
+        alert('Pilih printer terlebih dahulu');
+        return;
+    }
+
+    localStorage.setItem('printerBluetooth', alamat);
+    Android.connectPrinter(alamat);
+}
+
+function putuskanPrinter() {
+    Android.disconnectPrinter();
+
+    document.getElementById('statusPrinter').innerText =
+        'Printer diputus';
+}
+
+// SIMPAN UKURAN KERTAS
+
+document.getElementById('ukuranKertas').value =
+    localStorage.getItem('ukuranKertas') || '58';
+
+document.getElementById('ukuranKertas').addEventListener(
+    'change',
+    function() {
+        localStorage.setItem('ukuranKertas', this.value);
+    }
+);
 </script>
 </body>
 </html>
