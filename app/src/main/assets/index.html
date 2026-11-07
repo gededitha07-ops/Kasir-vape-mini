@@ -53,6 +53,9 @@ Riwayat Stok
 </button>
 <button onclick="show('riwayat')">Riwayat</button>
 <button onclick="show('laporan')">Laporan</button>
+ <button id="tabPrinter" onclick="show('printer')">
+Printer
+</button>
 <button onclick="show('backup')">Backup</button>
 <button onclick="logout()">Keluar</button>
 </nav>
@@ -442,13 +445,34 @@ garis + '\n' +
  alert('Transaksi berhasil disimpan\n\n'+struk);
 
 setTimeout(function() {
-    let pilihan = confirm(
-        'Pilih OK untuk menyimpan PDF.\nPilih Batal untuk membagikan struk.'
+    let pilihan = prompt(
+        'PILIH CARA CETAK STRUK\n\n' +
+        '1. Printer Bluetooth\n' +
+        '2. Simpan PDF\n' +
+        '3. Bagikan WhatsApp\n\n' +
+        'Masukkan angka 1, 2, atau 3'
     );
 
-    if (pilihan) {
+    if (pilihan === '1') {
+        let printer =
+            localStorage.getItem('printerBluetooth');
+
+        if (!printer) {
+            alert('Hubungkan printer terlebih dahulu');
+            return;
+        }
+
+        let ukuran =
+            parseInt(
+                localStorage.getItem('ukuranKertas') || '58'
+            );
+
+        Android.printBluetooth(struk, ukuran);
+
+    } else if (pilihan === '2') {
         Android.printReceipt(struk);
-    } else {
+
+    } else if (pilihan === '3') {
         Android.shareReceipt(struk);
     }
 }, 300);
@@ -721,7 +745,38 @@ function restore(){
   `;
 
   if (window.Android && Android.printReport) {
+    let pilihan = prompt(
+    'PILIH CARA CETAK LAPORAN\n\n' +
+    '1. Printer Bluetooth\n' +
+    '2. Simpan PDF\n\n' +
+    'Masukkan angka 1 atau 2'
+);
+
+if (pilihan === '1') {
+    let printer =
+        localStorage.getItem('printerBluetooth');
+
+    if (!printer) {
+        alert('Hubungkan printer terlebih dahulu');
+        return;
+    }
+
+    let ukuran =
+        parseInt(
+            localStorage.getItem('ukuranKertas') || '58'
+        );
+
+    let elemen = document.createElement('div');
+    elemen.innerHTML = isi;
+
+    let teksLaporan = elemen.innerText ||
+                      elemen.textContent;
+
+    Android.printBluetooth(teksLaporan, ukuran);
+
+} else if (pilihan === '2') {
     Android.printReport(isi);
+}
   } else {
     alert("Fitur cetak laporan belum terhubung");
   }
