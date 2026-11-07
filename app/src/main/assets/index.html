@@ -290,8 +290,14 @@ function logout(){
 }
 function show(id){
 
- // Kasir tidak boleh membuka Dashboard, Produk, atau Stok
- if((id==='produk' || id==='dashboard' || id==='stok') && !pemilik){
+ // Kasir tidak boleh membuka halaman khusus Pemilik
+ if(
+   (id==='produk' ||
+    id==='dashboard' ||
+    id==='stok' ||
+    id==='printer') &&
+    !pemilik
+ ){
   alert('Halaman ini hanya dapat dibuka oleh Pemilik');
   show('jual');
   return;
