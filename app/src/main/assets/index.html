@@ -525,7 +525,7 @@ keranjang=[];document.getElementById('umur').checked=false;
  tampilkan();
 }
 function tampilkanRiwayatStok(){
-
+alert(JSON.stringify(riwayatStok, null, 2));
  let masuk = riwayatStok
   .filter(x=>x.jenis==='Stok Masuk')
   .reduce((a,x)=>a+x.jumlah,0);
