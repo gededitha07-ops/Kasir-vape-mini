@@ -166,6 +166,21 @@ Printer
   <input type="month" id="bulanLaporan">
 
   <p id="ringkasan"></p>
+ <hr>
+
+<h3>Laporan Harian Produk</h3>
+
+<label>Pilih Tanggal</label>
+<input
+ type="date"
+ id="tanggalLaporanProduk"
+ onchange="tampilkanLaporanProduk()">
+
+<div id="hasilLaporanProduk"></div>
+
+<button onclick="cetakLaporanHarianProduk()">
+ Cetak Laporan Harian Produk
+</button>
 
   <button onclick="cetakLaporanBulanan()">
     Cetak Laporan Bulanan
@@ -317,6 +332,19 @@ function show(id){
  if(id==='stok'){
   tampilkanRiwayatStok();
  }
+ if(id==='laporan'){
+ let tanggal = document.getElementById(
+  'tanggalLaporanProduk'
+ );
+
+ if(tanggal && !tanggal.value){
+  tanggal.value = new Date().toLocaleDateString(
+   'en-CA'
+  );
+ }
+
+ tampilkanLaporanProduk();
+}
 }
 
   
@@ -656,6 +684,69 @@ if(document.getElementById('stok') &&
     tampilkanRiwayatStok();
 }
 }
+ function tampilkanLaporanProduk(){
+
+ let tanggal = document.getElementById(
+  'tanggalLaporanProduk'
+ ).value;
+
+ if(!tanggal){
+  document.getElementById(
+   'hasilLaporanProduk'
+  ).innerHTML = 'Silakan pilih tanggal laporan';
+  return;
+ }
+
+ let data = {};
+
+ transaksi
+ .filter(t=>t.tanggal.slice(0,10)===tanggal)
+ .forEach(t=>{
+  t.items.forEach(x=>{
+
+   if(!data[x.id]){
+    data[x.id]={
+     nama:x.nama,
+     jumlah:0,
+     omzet:0,
+     modal:0
+    };
+   }
+
+   data[x.id].jumlah += Number(x.jumlah);
+   data[x.id].omzet += Number(x.harga)*Number(x.jumlah);
+   data[x.id].modal += Number(x.modal)*Number(x.jumlah);
+
+  });
+ });
+
+ let daftar = Object.values(data);
+
+ let totalOmzet = daftar.reduce((a,x)=>a+x.omzet,0);
+ let totalModal = daftar.reduce((a,x)=>a+x.modal,0);
+ let totalJumlah = daftar.reduce((a,x)=>a+x.jumlah,0);
+
+ document.getElementById(
+  'hasilLaporanProduk'
+ ).innerHTML = daftar.length
+ ? daftar.map(x=>`
+   <div class="item">
+    <b>${x.nama}</b><br>
+    Terjual: ${x.jumlah} unit<br>
+    Omzet: ${rp(x.omzet)}<br>
+    Modal: ${rp(x.modal)}<br>
+    Laba: ${rp(x.omzet-x.modal)}
+   </div>
+  `).join('')+
+  `<div class="item">
+    <b>TOTAL LAPORAN</b><br>
+    Total terjual: ${totalJumlah} unit<br>
+    Omzet: ${rp(totalOmzet)}<br>
+    Modal: ${rp(totalModal)}<br>
+    Laba kotor: ${rp(totalOmzet-totalModal)}
+   </div>`
+ : 'Tidak ada transaksi pada tanggal ini';
+}
 
 function backup() {
     let data = JSON.stringify({
@@ -780,6 +871,47 @@ function cetakLaporanBulanan() {
     `;
 
     document.getElementById('modalLaporan').style.display = 'flex';
+}
+ 
+
+function cetakLaporanHarianProduk(){
+
+ let tanggal = document.getElementById(
+  'tanggalLaporanProduk'
+ ).value;
+
+ if(!tanggal){
+  alert('Pilih tanggal terlebih dahulu');
+  return;
+ }
+
+ tampilkanLaporanProduk();
+
+ let hasil = document.getElementById(
+  'hasilLaporanProduk'
+ ).innerHTML;
+
+ laporanUntukDicetak = `
+ <html>
+ <head>
+  <meta charset="UTF-8">
+  <title>Laporan Harian TWENTY ONE VAPOR</title>
+ </head>
+ <body style="font-family:Arial;padding:20px">
+  <h2>TWENTY ONE VAPOR</h2>
+  <h3>Laporan Harian Produk</h3>
+  <p>Tanggal: ${new Date(
+   tanggal+'T00:00:00'
+  ).toLocaleDateString('id-ID')}</p>
+  <hr>
+  ${hasil}
+ </body>
+ </html>
+ `;
+
+ document.getElementById(
+  'modalLaporan'
+ ).style.display = 'flex';
 }
 
 function tutupModalLaporan() {
