@@ -52,6 +52,9 @@ Riwayat Stok
 </button>
 <button onclick="show('riwayat')">Riwayat</button>
 <button onclick="show('laporan')">Laporan</button>
+ <button id="tabPrinter" onclick="show('printer')">
+    Printer
+</button>
 <button onclick="show('backup')">Backup</button>
 <button onclick="logout()">Keluar</button>
 </nav>
@@ -167,7 +170,40 @@ Riwayat Stok
     Cetak Laporan Bulanan
   </button>
 </div>
+<div id="printer" class="card hidden">
+    <h3>Pengaturan Printer Bluetooth</h3>
 
+    <label>Printer yang sudah dipasangkan</label>
+
+    <select id="printerList">
+        <option value="">Pilih printer</option>
+    </select>
+
+    <button onclick="refreshPrinter()">
+        Cari Printer
+    </button>
+
+    <button onclick="hubungkanPrinter()">
+        Hubungkan
+    </button>
+
+    <button onclick="putuskanPrinter()">
+        Putuskan Koneksi
+    </button>
+
+    <hr>
+
+    <label>Ukuran Kertas</label>
+
+    <select id="ukuranKertas">
+        <option value="58">58 mm</option>
+        <option value="80">80 mm</option>
+    </select>
+
+    <p id="statusPrinter">
+        Printer belum dipilih
+    </p>
+</div>
 <div id="backup" class="card hidden">
 <h3>Backup Data</h3>
 <button onclick="backup()">Unduh Backup JSON</button>
@@ -725,6 +761,79 @@ function restore(){
     alert("Fitur cetak laporan belum terhubung");
   }
 }
+ // ===============================
+// PENGATURAN PRINTER BLUETOOTH
+// ===============================
+
+function refreshPrinter() {
+    try {
+        let daftar = JSON.parse(Android.getPairedPrinters());
+
+        let pilihan = document.getElementById('printerList');
+
+        pilihan.innerHTML =
+            '<option value="">Pilih printer</option>';
+
+        if (daftar.length === 0) {
+            document.getElementById('statusPrinter').innerText =
+                'Tidak ada printer. Pastikan Bluetooth aktif dan printer sudah dipasangkan.';
+            return;
+        }
+
+        daftar.forEach(function(p) {
+            let option = document.createElement('option');
+
+            option.value = p.address;
+            option.textContent = p.name + ' (' + p.address + ')';
+
+            pilihan.appendChild(option);
+        });
+
+        let tersimpan = localStorage.getItem('printerBluetooth');
+
+        if (tersimpan) {
+            pilihan.value = tersimpan;
+        }
+
+        document.getElementById('statusPrinter').innerText =
+            daftar.length + ' perangkat Bluetooth ditemukan';
+
+    } catch (e) {
+        alert('Gagal mencari printer Bluetooth');
+    }
+}
+
+function hubungkanPrinter() {
+    let alamat =
+        document.getElementById('printerList').value;
+
+    if (!alamat) {
+        alert('Pilih printer terlebih dahulu');
+        return;
+    }
+
+    localStorage.setItem('printerBluetooth', alamat);
+
+    Android.connectPrinter(alamat);
+}
+
+function putuskanPrinter() {
+    Android.disconnectPrinter();
+
+    document.getElementById('statusPrinter').innerText =
+        'Printer diputus';
+}
+
+// Simpan ukuran kertas
+document.getElementById('ukuranKertas').value =
+    localStorage.getItem('ukuranKertas') || '58';
+
+document.getElementById('ukuranKertas').addEventListener(
+    'change',
+    function() {
+        localStorage.setItem('ukuranKertas', this.value);
+    }
+);
 </script>
 </body>
 </html>
