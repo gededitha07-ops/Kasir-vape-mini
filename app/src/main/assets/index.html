@@ -395,6 +395,16 @@ function simpanProduk(){
 
  if(!n||m<0||h<=0||s<0||!Number.isInteger(s))
  return alert('Periksa data produk');
+ let namaDuplikat = produk.find(p =>
+ p.nama.trim().toLowerCase() === n.toLowerCase() &&
+ p.id != idProdukEdit
+);
+
+if(namaDuplikat){
+ return alert(
+  'Produk dengan nama "'+n+'" sudah terdaftar!'
+ );
+}
 
  if(idProdukEdit!==null){
    let p=produk.find(x=>x.id==idProdukEdit);
@@ -455,9 +465,6 @@ function simpanProduk(){
 
  simpanData();
  tampilkan();
- alert(
- 'Jumlah riwayat stok: ' + riwayatStok.length
-);
 
  ['nama','modal','harga','stokProduk'].forEach(x=>
  document.getElementById(x).value=''
@@ -659,11 +666,17 @@ function tampilkanDashboard(){
  
 function tampilkan(){
 if(pemilik) tampilkanDashboard();
+
+ let produkUrut = produk.slice().sort((a,b) =>
+  a.nama.localeCompare(b.nama, 'id', {
+   sensitivity: 'base'
+  })
+ );
  let kataKasir = (
   document.getElementById('cariKasir')?.value || ''
  ).toLowerCase();
 
- let produkKasir = produk.filter(p =>
+ let produkKasir = produkUrut.filter(p =>
   p.nama.toLowerCase().includes(kataKasir)
  );
 
@@ -683,7 +696,7 @@ if(pemilik) tampilkanDashboard();
  document.getElementById('cariProduk')?.value || ''
 ).toLowerCase();
 
-let produkFilter = produk.filter(p =>
+let produkFilter = produkUrut.filter(p =>
  p.nama.toLowerCase().includes(kataProduk)
 );
 
