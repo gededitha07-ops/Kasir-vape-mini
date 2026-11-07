@@ -710,8 +710,14 @@ document.getElementById('daftarProduk').innerHTML=produkFilter.map(p=>`
  `:''}
  </div>`).join('');
 
- document.getElementById('daftarTransaksi').innerHTML=transaksi.slice().reverse().map(t=>`<div class="item">${new Date(t.tanggal).toLocaleString('id-ID')}<br>Total ${rp(t.total)} | Laba kotor ${rp(t.laba)}<br>${t.bayar}</div>`).join('');
-
+ document.getElementById('daftarTransaksi').innerHTML=transaksi.slice().reverse().map(t=>`
+ <div class="item">
+ ${new Date(t.tanggal).toLocaleString('id-ID')}<br>
+ Total ${rp(t.total)}
+ ${pemilik ? '| Laba kotor '+rp(t.laba) : ''}
+ <br>${t.bayar}
+ </div>
+`).join('');
  let omzet=transaksi.reduce((a,t)=>a+t.total,0);
  let laba=transaksi.reduce((a,t)=>a+t.laba,0);
  document.getElementById('ringkasan').innerHTML='Jumlah transaksi: '+transaksi.length+'<br>Omzet: '+rp(omzet)+'<br>Laba kotor: '+rp(laba);
