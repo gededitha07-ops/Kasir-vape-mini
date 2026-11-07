@@ -338,9 +338,7 @@ function show(id){
  );
 
  if(tanggal && !tanggal.value){
-  tanggal.value = new Date().toLocaleDateString(
-   'en-CA'
-  );
+  tanggal.value = tanggalLokal(new Date());
  }
 
  tampilkanLaporanProduk();
@@ -684,28 +682,48 @@ if(document.getElementById('stok') &&
     tampilkanRiwayatStok();
 }
 }
- function tampilkanLaporanProduk(){
+ function tanggalLokal(waktu){
+ let d = new Date(waktu);
+
+ let tahun = d.getFullYear();
+ let bulan = String(d.getMonth()+1).padStart(2,'0');
+ let hari = String(d.getDate()).padStart(2,'0');
+
+ return tahun+'-'+bulan+'-'+hari;
+}
+ 
+function tampilkanLaporanProduk(){
 
  let tanggal = document.getElementById(
   'tanggalLaporanProduk'
  ).value;
 
+ let hasil = document.getElementById(
+  'hasilLaporanProduk'
+ );
+
  if(!tanggal){
-  document.getElementById(
-   'hasilLaporanProduk'
-  ).innerHTML = 'Silakan pilih tanggal laporan';
+  hasil.innerHTML = 'Silakan pilih tanggal laporan';
   return;
  }
 
  let data = {};
 
  transaksi
- .filter(t=>t.tanggal.slice(0,10)===tanggal)
- .forEach(t=>{
-  t.items.forEach(x=>{
+ .filter(t =>
+  t.tanggal &&
+  tanggalLokal(t.tanggal) === tanggal &&
+  !t.dibatalkan &&
+  Array.isArray(t.items)
+ )
+ .forEach(t => {
 
-   if(!data[x.id]){
-    data[x.id]={
+  t.items.forEach(x => {
+
+   let id = x.id || x.nama;
+
+   if(!data[id]){
+    data[id] = {
      nama:x.nama,
      jumlah:0,
      omzet:0,
@@ -713,22 +731,31 @@ if(document.getElementById('stok') &&
     };
    }
 
-   data[x.id].jumlah += Number(x.jumlah);
-   data[x.id].omzet += Number(x.harga)*Number(x.jumlah);
-   data[x.id].modal += Number(x.modal)*Number(x.jumlah);
+   data[id].jumlah += Number(x.jumlah || 0);
+   data[id].omzet += Number(x.harga || 0) *
+                     Number(x.jumlah || 0);
+   data[id].modal += Number(x.modal || 0) *
+                     Number(x.jumlah || 0);
 
   });
+
  });
 
  let daftar = Object.values(data);
 
- let totalOmzet = daftar.reduce((a,x)=>a+x.omzet,0);
- let totalModal = daftar.reduce((a,x)=>a+x.modal,0);
- let totalJumlah = daftar.reduce((a,x)=>a+x.jumlah,0);
+ let totalOmzet = daftar.reduce(
+  (a,x)=>a+x.omzet,0
+ );
 
- document.getElementById(
-  'hasilLaporanProduk'
- ).innerHTML = daftar.length
+ let totalModal = daftar.reduce(
+  (a,x)=>a+x.modal,0
+ );
+
+ let totalJumlah = daftar.reduce(
+  (a,x)=>a+x.jumlah,0
+ );
+
+ hasil.innerHTML = daftar.length
  ? daftar.map(x=>`
    <div class="item">
     <b>${x.nama}</b><br>
@@ -747,6 +774,7 @@ if(document.getElementById('stok') &&
    </div>`
  : 'Tidak ada transaksi pada tanggal ini';
 }
+
 
 function backup() {
     let data = JSON.stringify({
