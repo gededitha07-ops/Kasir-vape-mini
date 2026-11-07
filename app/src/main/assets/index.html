@@ -118,7 +118,7 @@ Printer
 <input id="nama" placeholder="Nama produk">
 <input id="modal" type="number" placeholder="Harga modal (Rp)">
 <input id="harga" type="number" placeholder="Harga jual (Rp)">
-<input id="stok" type="number" placeholder="Stok awal">
+<input id="stokProduk" type="number" placeholder="Stok awal">
 <button onclick="simpanProduk()">Simpan Produk</button>
 <input
  id="cariProduk"
@@ -379,7 +379,7 @@ function editProduk(id){
  document.getElementById('nama').value=p.nama;
  document.getElementById('modal').value=p.modal;
  document.getElementById('harga').value=p.harga;
- document.getElementById('stok').value=p.stok;
+ document.getElementById('stokProduk').value=p.stok;
 
  alert('Silakan ubah data produk, lalu tekan Simpan Produk');
 }
@@ -391,7 +391,7 @@ function simpanProduk(){
  let n=document.getElementById('nama').value.trim();
  let m=Number(document.getElementById('modal').value);
  let h=Number(document.getElementById('harga').value);
- let s=Number(document.getElementById('stok').value);
+ let s=Number(document.getElementById('stokProduk').value);
 
  if(!n||m<0||h<=0||s<0||!Number.isInteger(s))
  return alert('Periksa data produk');
@@ -459,9 +459,9 @@ function simpanProduk(){
  'Jumlah riwayat stok: ' + riwayatStok.length
 );
 
- ['nama','modal','harga','stok'].forEach(x=>
+ ['nama','modal','harga','stokProduk'].forEach(x=>
  document.getElementById(x).value=''
- );
+);
 }
 
 function hapusProduk(id){
