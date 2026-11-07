@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kasir Vape Mini</title>
+<title>Twenty One Vapor</title>
 <style>
 body{font-family:Arial;background:#f1f3f5;margin:0;color:#222}
 header{background:#20252b;color:white;padding:16px;text-align:center}
@@ -181,6 +181,7 @@ Riwayat Stok
 <script>
 let produk=JSON.parse(localStorage.getItem('produk')||'[]');
 let transaksi=JSON.parse(localStorage.getItem('transaksi')||'[]');
+let riwayatStok=JSON.parse(localStorage.getItem('riwayatStok')||'[]');
 let keranjang=[];
 let pemilik=false;
  function catatRiwayatStok(
@@ -203,7 +204,6 @@ let pemilik=false;
   JSON.stringify(riwayatStok)
  );
 }
-let riwayatStok=JSON.parse(localStorage.getItem('riwayatStok')||'[]');
 
 const rp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
 function simpanData(){
@@ -251,12 +251,13 @@ function logout(){
 }
 function show(id){
 
- // Kasir tidak boleh membuka Dashboard atau Produk
+ // Kasir tidak boleh membuka Dashboard, Produk, atau Stok
  if((id==='produk' || id==='dashboard' || id==='stok') && !pemilik){
   alert('Halaman ini hanya dapat dibuka oleh Pemilik');
   show('jual');
   return;
-}
+ }
+
  document.querySelectorAll('#app>.card').forEach(x=>
   x.classList.add('hidden')
  );
@@ -265,8 +266,9 @@ function show(id){
 
  tampilkan();
 
-if(id==='stok'){
- tampilkanRiwayatStok();
+ if(id==='stok'){
+  tampilkanRiwayatStok();
+ }
 }
 
   
