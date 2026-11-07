@@ -646,6 +646,11 @@ document.getElementById('daftarProduk').innerHTML=produkFilter.map(p=>`
  document.getElementById('ringkasan').innerHTML='Jumlah transaksi: '+transaksi.length+'<br>Omzet: '+rp(omzet)+'<br>Laba kotor: '+rp(laba);
 
  tampilkanKeranjang();
+
+if(document.getElementById('stok') &&
+   !document.getElementById('stok').classList.contains('hidden')){
+    tampilkanRiwayatStok();
+}
 }
 
 function backup() {
